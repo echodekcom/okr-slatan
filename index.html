@@ -460,15 +460,32 @@ async function syncToSheet(type) {
 async function loadFromSheet() {
   if (!SHEET_URL || SHEET_URL === "YOUR_APPS_SCRIPT_URL_HERE") return;
   setSyncStatus("loading");
+  console.log("[OKR] loadFromSheet: starting JSONP request...");
   try {
     const json = await new Promise((resolve, reject) => {
       const cbName = "_okrCb_" + Date.now();
-      const timeout = setTimeout(() => { delete window[cbName]; sc.remove(); reject(new Error("timeout")); }, 15000);
-      window[cbName] = function(data) { clearTimeout(timeout); delete window[cbName]; sc.remove(); resolve(data); };
+      const timeout = setTimeout(() => {
+        console.error("[OKR] JSONP timeout after 15s");
+        delete window[cbName]; sc.remove(); reject(new Error("timeout"));
+      }, 15000);
+      window[cbName] = function(data) {
+        console.log("[OKR] JSONP callback received!", Object.keys(data));
+        clearTimeout(timeout); delete window[cbName]; sc.remove(); resolve(data);
+      };
       const sc = document.createElement("script");
       sc.src = SHEET_URL + "?callback=" + cbName;
-      sc.onerror = () => { clearTimeout(timeout); delete window[cbName]; reject(new Error("script error")); };
+      sc.onerror = (e) => {
+        console.error("[OKR] JSONP script load error", e);
+        clearTimeout(timeout); delete window[cbName]; reject(new Error("script error"));
+      };
       document.head.appendChild(sc);
+    });
+
+    console.log("[OKR] Data received, applying...", {
+      krKeys: json.kr ? Object.keys(json.kr).length : 0,
+      actualKeys: json.actual ? Object.keys(json.actual).length : 0,
+      monthKeys: json.month ? Object.keys(json.month).length : 0,
+      planKeys: json.plan ? Object.keys(json.plan).length : 0,
     });
 
     // KR status
@@ -503,6 +520,7 @@ async function loadFromSheet() {
       });
     }
 
+    console.log("[OKR] Data applied! Re-rendering...");
     setSyncStatus("saved");
     // re-render ด้วยข้อมูลล่าสุด
     renderSidebar();
@@ -510,6 +528,7 @@ async function loadFromSheet() {
     else if (currentView === "overview") renderOverview();
     else renderSummary();
   } catch(e) {
+    console.error("[OKR] loadFromSheet failed:", e.message);
     setSyncStatus("error");
   }
 }
