@@ -38,7 +38,8 @@ body{
 .logout-btn:hover{background:#7f1d1d;color:#fff;}
 .user-badge{display:flex;align-items:center;gap:7px;padding:4px 12px;border-radius:6px;background:#1E293B;border:1px solid #334155;margin-left:8px;}
 .user-badge-dot{width:7px;height:7px;border-radius:50%;background:#059669;flex-shrink:0;}
-.user-badge-name{font-size:12px;color:#94A3B8;font-family:var(--font-body);}
+.user-badge-name{font-size:12px;color:#E2E8F0;font-weight:600;font-family:var(--font-body);}
+.user-badge-role{font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;font-family:var(--font-body);border:1px solid transparent;}
 .readonly-banner{background:#1E293B;border-bottom:1px solid #334155;padding:7px 22px;font-size:12px;color:#64748B;display:none;align-items:center;gap:8px;}
 .readonly-banner.show{display:flex;}
 .sel-input:disabled,.m-sel:disabled{opacity:0.5;cursor:not-allowed;background:#F1F5F9;}
@@ -259,8 +260,8 @@ async function doLogin() {
     // init state with decrypted data, then render
     __initState__();
     // บันทึก session
-    sessionStorage.setItem("okr_user", u.toLowerCase());
-    sessionStorage.setItem("okr_data", plaintext);
+    localStorage.setItem("okr_user", u.toLowerCase());
+    localStorage.setItem("okr_data", plaintext);
     __applyUserSession__(u.toLowerCase());
     // fade out login
     const overlay = document.getElementById("login-overlay");
@@ -269,6 +270,7 @@ async function doLogin() {
       overlay.remove();
       renderSidebar();
       renderSummary();
+      loadFromSheet();
     }, 300);
   } else {
     loading.classList.remove("show");
@@ -322,13 +324,15 @@ async function doLogin() {
     <div class="user-badge" id="user-badge" style="display:none">
       <div class="user-badge-dot"></div>
       <span class="user-badge-name" id="user-badge-name">-</span>
+      <span class="user-badge-role" id="user-badge-role">Viewer</span>
     </div>
+    <span id="sync-status" style="font-size:11px;color:#64748B;font-family:var(--font-mono);margin-left:10px;"></span>
     <button class="logout-btn" id="logout-btn" onclick="doLogout()" style="display:none">ออกจากระบบ</button>
   </div>
 </div>
 
 <div class="readonly-banner" id="readonly-banner">
-  🔒 <span>คุณมีสิทธิ์<strong>ดูข้อมูลเท่านั้น</strong> — ไม่สามารถแก้ไขได้</span>
+  🔒 <span>สิทธิ์ <strong>Viewer</strong> — ดูข้อมูลได้อย่างเดียว ไม่สามารถแก้ไขได้</span>
 </div>
 <div class="main">
   <div class="sidebar" id="sidebar"></div>
@@ -377,6 +381,129 @@ async function __decryptData__(username, password) {
 // DATA will be injected here after login
 let __DATA_READY__ = false;
 
+
+// ══════════════════════════════════
+//  GOOGLE SHEETS SYNC
+// ══════════════════════════════════
+
+// 👇 วาง URL ที่ได้จาก Apps Script Deploy ตรงนี้
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwdx5VnzI59uBDADml0L-8mysRHGoPFH0LBLFauyw7LfKs_vzvDsidT2I9CEXosNvVf/exec";
+
+let _saveTimer = null;
+
+// debounce: รอ 1.2s หลังแก้ล่าสุดแล้วค่อย save
+function scheduleSave(type) {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => syncToSheet(type), 1200);
+}
+
+// แสดง sync status ที่ topbar
+function setSyncStatus(state) {
+  const el = document.getElementById("sync-status");
+  if (!el) return;
+  const map = {
+    saving:  { text: "⏳ กำลังบันทึก...", color: "#D97706" },
+    saved:   { text: "✅ บันทึกแล้ว",     color: "#059669" },
+    error:   { text: "❌ บันทึกไม่สำเร็จ", color: "#DC2626" },
+    loading: { text: "🔄 กำลังโหลด...",   color: "#3B82F6" },
+    offline: { text: "⚠️ ไม่ได้ตั้ง URL",  color: "#64748B" },
+  };
+  const s = map[state] || map.offline;
+  el.textContent = s.text;
+  el.style.color = s.color;
+}
+
+// ส่งข้อมูลไป Sheet
+async function syncToSheet(type) {
+  if (!SHEET_URL || SHEET_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
+    setSyncStatus("offline"); return;
+  }
+  setSyncStatus("saving");
+  try {
+    let data = {};
+    if (type === "kr") {
+      // { "faiz_0": { status: "done" }, "faiz_1": ... }
+      PEOPLE.forEach(p => {
+        krStatus[p.id].forEach((s, i) => { data[`${p.id}_${i}`] = { status: s }; });
+      });
+    }
+    if (type === "actual") {
+      PEOPLE.forEach(p => {
+        actualData[p.id].forEach((v, i) => { data[`${p.id}_${i}`] = { value: v }; });
+      });
+    }
+    if (type === "month") {
+      PEOPLE.forEach(p => {
+        monthData[p.id].forEach((v, i) => { data[`${p.id}_${i}`] = { status: v }; });
+      });
+    }
+    if (type === "plan") {
+      planStatus.forEach((s, i) => { data[`plan_${i}`] = { status: s }; });
+    }
+
+    const res = await fetch(SHEET_URL, {
+      method: "POST",
+      body: JSON.stringify({ type, data }),
+    });
+    const json = await res.json();
+    setSyncStatus(json.ok ? "saved" : "error");
+    if (json.ok) setTimeout(() => setSyncStatus("saved"), 3000);
+  } catch(e) {
+    setSyncStatus("error");
+  }
+}
+
+// โหลดข้อมูลจาก Sheet ตอน login
+async function loadFromSheet() {
+  if (!SHEET_URL || SHEET_URL === "YOUR_APPS_SCRIPT_URL_HERE") return;
+  setSyncStatus("loading");
+  try {
+    const res  = await fetch(SHEET_URL);
+    const json = await res.json();
+
+    // KR status
+    if (json.kr) {
+      Object.entries(json.kr).forEach(([key, val]) => {
+        const [pid, idx] = key.split("_");
+        if (krStatus[pid] && krStatus[pid][+idx] !== undefined)
+          krStatus[pid][+idx] = val.status;
+      });
+    }
+    // Actual results
+    if (json.actual) {
+      Object.entries(json.actual).forEach(([key, val]) => {
+        const [pid, idx] = key.split("_");
+        if (actualData[pid] && actualData[pid][+idx] !== undefined)
+          actualData[pid][+idx] = val.value;
+      });
+    }
+    // Monthly
+    if (json.month) {
+      Object.entries(json.month).forEach(([key, val]) => {
+        const [pid, idx] = key.split("_");
+        if (monthData[pid] && monthData[pid][+idx] !== undefined)
+          monthData[pid][+idx] = val.status;
+      });
+    }
+    // Plan status
+    if (json.plan) {
+      Object.entries(json.plan).forEach(([key, val]) => {
+        const i = +key.replace("plan_", "");
+        if (planStatus[i] !== undefined) planStatus[i] = val.status;
+      });
+    }
+
+    setSyncStatus("saved");
+    // re-render ด้วยข้อมูลล่าสุด
+    renderSidebar();
+    if (currentView === "detail") renderDetail(selectedPerson);
+    else if (currentView === "overview") renderOverview();
+    else renderSummary();
+  } catch(e) {
+    setSyncStatus("error");
+  }
+}
+
 // ══════════════════════════════════
 //  STATE  (init after decrypt)
 // ══════════════════════════════════
@@ -416,35 +543,61 @@ function statusColor(s){
 // ══════════════════════════════════
 //  SESSION & PERMISSIONS
 // ══════════════════════════════════
-const EDITORS = ["hasan","faiz","deen"];
+const ROLES = {
+  hasan:   "admin",
+  faiz:    "editor",
+  deen:    "editor",
+  rohimee: "viewer",
+  ameen:   "viewer",
+  sukree:  "viewer",
+  louis:   "viewer",
+  syahdan: "viewer",
+};
 let currentUser = "";
+let currentRole = "viewer";
 
-function canEdit() { return EDITORS.includes(currentUser); }
+function isAdmin()  { return currentRole === "admin"; }
+function isEditor() { return currentRole === "editor" || currentRole === "admin"; }
+function canEdit()  { return isEditor(); }
 
 function __applyUserSession__(username) {
   currentUser = username;
-  // แสดง user badge + logout
+  currentRole = ROLES[username] || "viewer";
+
+  // role label + color
+  const roleLabel = {admin:"Admin", editor:"Editor", viewer:"Viewer"};
+  const roleColor = {admin:"#D93025", editor:"#2563EB", viewer:"#64748B"};
+  const roleBg    = {admin:"#450a0a", editor:"#1e3a5f", viewer:"#1E293B"};
+
   const badge = document.getElementById("user-badge");
   const badgeName = document.getElementById("user-badge-name");
+  const badgeRole = document.getElementById("user-badge-role");
   const logoutBtn = document.getElementById("logout-btn");
+
   if(badge) { badge.style.display="flex"; }
   if(badgeName) { badgeName.textContent = username.charAt(0).toUpperCase() + username.slice(1); }
+  if(badgeRole) {
+    badgeRole.textContent = roleLabel[currentRole];
+    badgeRole.style.color = roleColor[currentRole];
+    badgeRole.style.background = roleBg[currentRole];
+  }
   if(logoutBtn) { logoutBtn.style.display="block"; }
-  // แสดง readonly banner ถ้าไม่มีสิทธิ์แก้ไข
+
+  // readonly banner
   const banner = document.getElementById("readonly-banner");
   if(banner) { banner.classList.toggle("show", !canEdit()); }
 }
 
 function doLogout() {
-  sessionStorage.removeItem("okr_user");
-  sessionStorage.removeItem("okr_data");
+  localStorage.removeItem("okr_user");
+  localStorage.removeItem("okr_data");
   location.reload();
 }
 
 // restore session ถ้ามี
 (async function restoreSession() {
-  const savedUser = sessionStorage.getItem("okr_user");
-  const savedData = sessionStorage.getItem("okr_data");
+  const savedUser = localStorage.getItem("okr_user");
+  const savedData = localStorage.getItem("okr_data");
   if(savedUser && savedData) {
     const script = document.createElement("script");
     script.textContent = savedData;
@@ -454,6 +607,7 @@ function doLogout() {
     document.getElementById("login-overlay").remove();
     renderSidebar();
     renderSummary();
+    loadFromSheet();
   }
 })();
 
@@ -722,6 +876,7 @@ function setView(v, btn) {
 
 function changeStatus(pid, idx, val) {
   krStatus[pid][idx] = val;
+  scheduleSave('kr');
   renderSidebar();
   const pct = getProgress(pid);
   const pctEl = document.querySelector(".prog-pct");
@@ -732,11 +887,12 @@ function changeStatus(pid, idx, val) {
   if(krEl) krEl.textContent=`${krStatus[pid].filter(s=>s==="done").length}/${getPerson(pid).krs.length} KR`;
 }
 
-function saveActual(pid, idx, val) { actualData[pid][idx]=val; }
-function changeMonth(pid, mi, val) { monthData[pid][mi]=val; }
+function saveActual(pid, idx, val) { actualData[pid][idx]=val; scheduleSave('actual'); }
+function changeMonth(pid, mi, val) { monthData[pid][mi]=val; scheduleSave('month'); }
 function changePlanStatus(idx, val) {
   planStatus[idx]=val;
   renderSummary();
+  scheduleSave('plan');
 }
 
 // ══════════════════════════════════
