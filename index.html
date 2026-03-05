@@ -6,6 +6,8 @@
 <title>OKR ครึ่งปีแรก 2026 — Slatan Design</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzIiIGhlaWdodD0iODciIHZpZXdCb3g9IjAgMCA3MiA4NyIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTcxLjY0MTEgMEM3MS42NDExIDAgNzEuNTkgNC43NzQxOCA2OS4xMTMgOC4xODA2NUM2NC4yMjI3IDE0LjkwNDEgNTcuMjM4NCAxNC40ODIzIDU3LjIzODQgMTQuNDgyM0gyOC43MTk5QzI4LjcxOTkgMTQuNDgyMyAxNC4yNTMzIDE0Ljc0NDMgMTQuMjUzMyAyOC45NjQ2QzE0LjI1MzMgNDIuNjIyNSAyOC43MTk5IDQzLjQ0NjkgMjguNzE5OSA0My40NDY5TDM4Ljg3NzMgNDMuNDIxNEw0Ni4xMDQzIDUwLjYxMTRMMzguODA3MSA1Ny45MzU2QzM4LjgwNzEgNTcuOTM1NiAzMS4yNDE4IDU4LjAxMjMgMjguNzE5OSA1Ny45MzU2QzIyLjcxMjQgNTcuNzUwMyAwLjMzNTczNyA1Mi45NzYyIDAuMDAzNzU3NjMgMjkuNTI3MUMtMC4zMjE4MzcgNy4xMjYxMyAyMC41OTkzIDAgMjguNzE5OSAwSDcxLjY0MTFaIiBmaWxsPSJ1cmwoI3BhaW50MF9saW5lYXJfMzAxM185KSIvPgo8cGF0aCBkPSJNNzEuNTY1NyA1MC42Mjg4TDUwLjA2MzYgMjkuMDkwNkgzMC4wNjE4TDUxLjU2MzkgNTAuNjIyNEwxOC41MTI3IDgzLjcyMjFDMjIuNTkyMyA4Ny43NzQwIDMyLjM0MTAgODguMjQwNiAzNy42Mzk5IDg0LjE1MDNDNDAuMDUzMiA4Mi4yODQwIDQwLjYwMjEgODEuNjEzIDQwLjYwMjEgODEuNjEzTDcxLjU2NTcgNTAuNjI4OFoiIGZpbGw9InVybCgjcGFpbnQxX2xpbmVhcl8zMDEzXzkpIi8+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50MF9saW5lYXJfMzAxM185IiB4MT0iMjI3LjQwNCIgeTE9IjU4LjkzNiIgeDI9IjMzLjUyNTQiIHkyPSItNDQuMDcwMyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgo8c3RvcCBzdG9wLWNvbG9yPSIjQzEwMDA1Ii8+CjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0Y0MDAwNiIvPgo8L2xpbmVhckdyYWRpZW50Pgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50MV9saW5lYXJfMzAxM185IiB4MT0iMTg2LjkxNCIgeTE9Ijg3Ljk2NCIgeDI9IjI3LjUzNjIiIHkyPSIyNS4xOTEzIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9IiNDMTAwMDUiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRjQwMDA2Ii8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800;900&family=Sarabun:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
 :root {
   --red:#D93025; --dark:#0F172A; --mid:#334155; --soft:#94A3B8;
@@ -181,10 +183,10 @@ body{
 @keyframes loginIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes loginOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-16px)}}
 .login-logo{display:flex;justify-content:center;margin-bottom:28px;}
-.login-title{font-family:'Noto Sans Thai',sans-serif;font-size:22px;font-weight:800;color:#F1F5F9;text-align:center;margin-bottom:6px;}
+.login-title{font-family:'Noto Sans Thai',sans-serif;font-size:17px;font-weight:800;color:#F1F5F9;text-align:center;margin-bottom:6px;}
 .login-sub{font-size:13px;color:#64748B;text-align:center;margin-bottom:28px;}
 .login-field{margin-bottom:16px;}
-.login-field label{display:block;font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:6px;text-transform:uppercase;}
+.login-field label{display:block;font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;}
 .login-field input{width:100%;padding:11px 14px;background:#0F172A;border:1px solid #334155;border-radius:10px;color:#F1F5F9;font-size:15px;font-family:'Sarabun',sans-serif;outline:none;transition:border-color .2s;}
 .login-field input:focus{border-color:#D93025;}
 .login-btn{width:100%;padding:13px;background:linear-gradient(135deg,#C10005,#F40006);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer;margin-top:8px;transition:opacity .2s,transform .1s;}
@@ -386,9 +388,14 @@ let __DATA_READY__ = false;
 //  FIREBASE REALTIME DATABASE SYNC
 // ══════════════════════════════════
 
-const FIREBASE_URL = "https://slatanhub-1767064087995-default-rtdb.asia-southeast1.firebasedatabase.app";
+// Initialize Firebase
+const firebaseApp = firebase.initializeApp({
+  databaseURL: "https://slatanhub-1767064087995-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+const db = firebase.database();
 
 let _saveTimer = null;
+let _isLocalUpdate = false; // ป้องกัน loop: เราแก้เอง → listener trigger → re-render → แก้ซ้ำ
 
 // debounce: รอ 1.2s หลังแก้ล่าสุดแล้วค่อย save
 function scheduleSave(type) {
@@ -405,9 +412,9 @@ function setSyncStatus(state) {
     saved:   { text: "✅ บันทึกแล้ว",     color: "#059669" },
     error:   { text: "❌ บันทึกไม่สำเร็จ", color: "#DC2626" },
     loading: { text: "🔄 กำลังโหลด...",   color: "#3B82F6" },
-    offline: { text: "⚠️ ไม่ได้ตั้ง URL",  color: "#64748B" },
+    realtime:{ text: "🟢 เชื่อมต่อ Realtime", color: "#059669" },
   };
-  const s = map[state] || map.offline;
+  const s = map[state] || { text: "", color: "#64748B" };
   el.textContent = s.text;
   el.style.color = s.color;
 }
@@ -436,78 +443,90 @@ async function syncToFirebase(type) {
       planStatus.forEach((s, i) => { data["plan_" + i] = { status: s }; });
     }
 
-    // Firebase REST API — PUT จะเขียนทับทั้ง node
-    const res = await fetch(FIREBASE_URL + "/" + type + ".json", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      setSyncStatus("saved");
-    } else {
-      console.error("[OKR] Firebase save error:", res.status);
-      setSyncStatus("error");
-    }
+    _isLocalUpdate = true;
+    await db.ref(type).set(data);
+    setTimeout(() => { _isLocalUpdate = false; }, 500);
+    setSyncStatus("saved");
+    setTimeout(() => setSyncStatus("realtime"), 2000);
   } catch(e) {
+    _isLocalUpdate = false;
     console.error("[OKR] syncToFirebase error:", e);
     setSyncStatus("error");
   }
 }
 
-// โหลดข้อมูลจาก Firebase ตอน login
+// Apply ข้อมูลจาก Firebase snapshot เข้า state
+function applyFirebaseData(json) {
+  if (!json) return;
+
+  if (json.kr) {
+    Object.entries(json.kr).forEach(([key, val]) => {
+      const [pid, idx] = key.split("_");
+      if (krStatus[pid] && krStatus[pid][+idx] !== undefined)
+        krStatus[pid][+idx] = val.status;
+    });
+  }
+  if (json.actual) {
+    Object.entries(json.actual).forEach(([key, val]) => {
+      const [pid, idx] = key.split("_");
+      if (actualData[pid] && actualData[pid][+idx] !== undefined)
+        actualData[pid][+idx] = val.value;
+    });
+  }
+  if (json.month) {
+    Object.entries(json.month).forEach(([key, val]) => {
+      const [pid, idx] = key.split("_");
+      if (monthData[pid] && monthData[pid][+idx] !== undefined)
+        monthData[pid][+idx] = val.status;
+    });
+  }
+  if (json.plan) {
+    Object.entries(json.plan).forEach(([key, val]) => {
+      const i = +key.replace("plan_", "");
+      if (planStatus[i] !== undefined) planStatus[i] = val.status;
+    });
+  }
+}
+
+// Re-render UI
+function reRenderAll() {
+  renderSidebar();
+  if (currentView === "detail") renderDetail(selectedPerson);
+  else if (currentView === "overview") renderOverview();
+  else renderSummary();
+}
+
+// โหลดข้อมูลครั้งแรก + เปิด realtime listener
 async function loadFromSheet() {
   setSyncStatus("loading");
-  console.log("[OKR] loadFromFirebase: starting...");
+  console.log("[OKR] Firebase: starting realtime listener...");
   try {
-    const res = await fetch(FIREBASE_URL + "/.json");
-    if (!res.ok) { console.error("[OKR] Firebase load error:", res.status); setSyncStatus("error"); return; }
-    const json = await res.json();
+    // ดึงข้อมูลครั้งแรก
+    const snapshot = await db.ref("/").once("value");
+    const json = snapshot.val();
 
-    if (!json) { console.log("[OKR] Firebase is empty, using defaults"); setSyncStatus("saved"); return; }
-
-    console.log("[OKR] Firebase data received:", Object.keys(json));
-
-    // KR status
-    if (json.kr) {
-      Object.entries(json.kr).forEach(([key, val]) => {
-        const [pid, idx] = key.split("_");
-        if (krStatus[pid] && krStatus[pid][+idx] !== undefined)
-          krStatus[pid][+idx] = val.status;
-      });
-    }
-    // Actual results
-    if (json.actual) {
-      Object.entries(json.actual).forEach(([key, val]) => {
-        const [pid, idx] = key.split("_");
-        if (actualData[pid] && actualData[pid][+idx] !== undefined)
-          actualData[pid][+idx] = val.value;
-      });
-    }
-    // Monthly
-    if (json.month) {
-      Object.entries(json.month).forEach(([key, val]) => {
-        const [pid, idx] = key.split("_");
-        if (monthData[pid] && monthData[pid][+idx] !== undefined)
-          monthData[pid][+idx] = val.status;
-      });
-    }
-    // Plan status
-    if (json.plan) {
-      Object.entries(json.plan).forEach(([key, val]) => {
-        const i = +key.replace("plan_", "");
-        if (planStatus[i] !== undefined) planStatus[i] = val.status;
-      });
+    if (json) {
+      console.log("[OKR] Firebase initial data:", Object.keys(json));
+      applyFirebaseData(json);
+      reRenderAll();
+    } else {
+      console.log("[OKR] Firebase is empty, using defaults");
     }
 
-    console.log("[OKR] Data applied! Re-rendering...");
-    setSyncStatus("saved");
-    // re-render ด้วยข้อมูลล่าสุด
-    renderSidebar();
-    if (currentView === "detail") renderDetail(selectedPerson);
-    else if (currentView === "overview") renderOverview();
-    else renderSummary();
+    // เปิด realtime listener — จะทำงานทุกครั้งที่ข้อมูลเปลี่ยน
+    db.ref("/").on("value", (snap) => {
+      if (_isLocalUpdate) return; // ข้ามถ้าเป็นการแก้ของเราเอง
+      const data = snap.val();
+      if (!data) return;
+      console.log("[OKR] Realtime update received!");
+      applyFirebaseData(data);
+      reRenderAll();
+      setSyncStatus("realtime");
+    });
+
+    setSyncStatus("realtime");
   } catch(e) {
-    console.error("[OKR] loadFromFirebase failed:", e);
+    console.error("[OKR] Firebase init failed:", e);
     setSyncStatus("error");
   }
 }
