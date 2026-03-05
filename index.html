@@ -34,6 +34,14 @@ body{
 .tb-nav{display:flex;gap:4px;}
 .nav-btn{padding:5px 14px;border-radius:6px;border:1px solid #334155;background:transparent;color:#94A3B8;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:all .2s;white-space:nowrap;}
 .nav-btn.active,.nav-btn:hover{background:#1E293B;color:#fff;border-color:#475569;}
+.logout-btn{padding:5px 12px;border-radius:6px;border:1px solid #7f1d1d;background:transparent;color:#f87171;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:all .2s;white-space:nowrap;margin-left:8px;}
+.logout-btn:hover{background:#7f1d1d;color:#fff;}
+.user-badge{display:flex;align-items:center;gap:7px;padding:4px 12px;border-radius:6px;background:#1E293B;border:1px solid #334155;margin-left:8px;}
+.user-badge-dot{width:7px;height:7px;border-radius:50%;background:#059669;flex-shrink:0;}
+.user-badge-name{font-size:12px;color:#94A3B8;font-family:var(--font-body);}
+.readonly-banner{background:#1E293B;border-bottom:1px solid #334155;padding:7px 22px;font-size:12px;color:#64748B;display:none;align-items:center;gap:8px;}
+.readonly-banner.show{display:flex;}
+.sel-input:disabled,.m-sel:disabled{opacity:0.5;cursor:not-allowed;background:#F1F5F9;}
 
 /* ── LAYOUT ── */
 .main{display:flex;min-height:calc(100vh - 58px);}
@@ -250,6 +258,10 @@ async function doLogin() {
     document.head.appendChild(script);
     // init state with decrypted data, then render
     __initState__();
+    // บันทึก session
+    sessionStorage.setItem("okr_user", u.toLowerCase());
+    sessionStorage.setItem("okr_data", plaintext);
+    __applyUserSession__(u.toLowerCase());
     // fade out login
     const overlay = document.getElementById("login-overlay");
     overlay.style.animation = "loginOut .3s ease forwards";
@@ -301,13 +313,23 @@ async function doLogin() {
     <div class="tb-divider"></div>
     <span class="tb-sub">OKR ครึ่งปีแรก 2026</span>
   </div>
-  <div class="tb-nav">
-    <button class="nav-btn active" onclick="setView('summary',this)">📊 สรุปแผนงาน</button>
-    <button class="nav-btn" onclick="setView('detail',this)">📋 รายบุคคล</button>
-    <button class="nav-btn" onclick="setView('overview',this)">🗂 ภาพรวม</button>
+  <div style="display:flex;align-items:center;gap:0">
+    <div class="tb-nav">
+      <button class="nav-btn active" onclick="setView('summary',this)">📊 สรุปแผนงาน</button>
+      <button class="nav-btn" onclick="setView('detail',this)">📋 รายบุคคล</button>
+      <button class="nav-btn" onclick="setView('overview',this)">🗂 ภาพรวม</button>
+    </div>
+    <div class="user-badge" id="user-badge" style="display:none">
+      <div class="user-badge-dot"></div>
+      <span class="user-badge-name" id="user-badge-name">-</span>
+    </div>
+    <button class="logout-btn" id="logout-btn" onclick="doLogout()" style="display:none">ออกจากระบบ</button>
   </div>
 </div>
 
+<div class="readonly-banner" id="readonly-banner">
+  🔒 <span>คุณมีสิทธิ์<strong>ดูข้อมูลเท่านั้น</strong> — ไม่สามารถแก้ไขได้</span>
+</div>
 <div class="main">
   <div class="sidebar" id="sidebar"></div>
   <div class="content" id="content"></div>
@@ -392,6 +414,50 @@ function statusColor(s){
 }
 
 // ══════════════════════════════════
+//  SESSION & PERMISSIONS
+// ══════════════════════════════════
+const EDITORS = ["hasan","faiz","deen"];
+let currentUser = "";
+
+function canEdit() { return EDITORS.includes(currentUser); }
+
+function __applyUserSession__(username) {
+  currentUser = username;
+  // แสดง user badge + logout
+  const badge = document.getElementById("user-badge");
+  const badgeName = document.getElementById("user-badge-name");
+  const logoutBtn = document.getElementById("logout-btn");
+  if(badge) { badge.style.display="flex"; }
+  if(badgeName) { badgeName.textContent = username.charAt(0).toUpperCase() + username.slice(1); }
+  if(logoutBtn) { logoutBtn.style.display="block"; }
+  // แสดง readonly banner ถ้าไม่มีสิทธิ์แก้ไข
+  const banner = document.getElementById("readonly-banner");
+  if(banner) { banner.classList.toggle("show", !canEdit()); }
+}
+
+function doLogout() {
+  sessionStorage.removeItem("okr_user");
+  sessionStorage.removeItem("okr_data");
+  location.reload();
+}
+
+// restore session ถ้ามี
+(async function restoreSession() {
+  const savedUser = sessionStorage.getItem("okr_user");
+  const savedData = sessionStorage.getItem("okr_data");
+  if(savedUser && savedData) {
+    const script = document.createElement("script");
+    script.textContent = savedData;
+    document.head.appendChild(script);
+    __initState__();
+    __applyUserSession__(savedUser);
+    document.getElementById("login-overlay").remove();
+    renderSidebar();
+    renderSummary();
+  }
+})();
+
+// ══════════════════════════════════
 //  SIDEBAR
 // ══════════════════════════════════
 function renderSidebar() {
@@ -427,8 +493,8 @@ function renderDetail(pid) {
     return `<tr>
       <td class="kr-num">KR${i+1}</td>
       <td><div class="kr-text">${kr.text}</div><div class="kr-sub">📏 วัดจาก: ${kr.kpi} &nbsp;|&nbsp; 🎯 เป้าหมาย: ${kr.target}</div></td>
-      <td><select class="sel-input" style="max-width:140px" onchange="changeStatus('${pid}',${i},this.value)">${opts}</select></td>
-      <td><input class="sel-input" type="text" placeholder="กรอกผลจริง..." value="${actualData[pid][i]}" oninput="saveActual('${pid}',${i},this.value)"></td>
+      <td><select class="sel-input" style="max-width:140px" onchange="changeStatus('${pid}',${i},this.value)" ${!canEdit()?'disabled':''}>${opts}</select></td>
+      <td><input class="sel-input" type="text" placeholder="${canEdit()?'กรอกผลจริง...':'ดูได้อย่างเดียว'}" value="${actualData[pid][i]}" oninput="saveActual('${pid}',${i},this.value)" ${!canEdit()?'disabled':''}></td>
     </tr>`;
   }).join("");
 
@@ -437,7 +503,7 @@ function renderDetail(pid) {
     const opts = Object.entries(STATUS_CFG).map(([v,c])=>`<option value="${v}" ${st===v?"selected":""}>${c.emoji}</option>`).join("");
     return `<div class="month-cell ${i===CUR_M?"cur":""}">
       <div class="m-name">${m}</div>
-      <select class="m-sel" onchange="changeMonth('${pid}',${i},this.value)">${opts}</select>
+      <select class="m-sel" onchange="changeMonth('${pid}',${i},this.value)" ${!canEdit()?'disabled':''}>${opts}</select>
     </div>`;
   }).join("");
 
@@ -564,7 +630,7 @@ function renderSummary() {
         <td>${typeTag}</td>
         <td style="font-weight:500;color:#1E293B;font-size:12px">${it.text}</td>
         <td style="font-size:11px;color:#64748B;white-space:nowrap">${it.period}</td>
-        <td><select class="sel-input" style="max-width:150px" onchange="changePlanStatus(${it.idx},this.value)">${statusOpts}</select></td>
+        <td><select class="sel-input" style="max-width:150px" onchange="changePlanStatus(${it.idx},this.value)" ${!canEdit()?'disabled':''}>${statusOpts}</select></td>
       </tr>`;
     }).join("");
     return `<div class="plan-section">
