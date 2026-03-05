@@ -157,6 +157,39 @@ body{
 .plan-table tr:last-child td{border-bottom:none;}
 .plan-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap;font-family:var(--font-body);}
 
+/* ── TOPBAR RIGHT ── */
+.tb-right{display:flex;align-items:center;gap:0;}
+
+/* ── HAMBURGER (hidden on desktop) ── */
+.hamburger-btn{display:none;background:none;border:none;cursor:pointer;padding:6px;margin-left:8px;flex-direction:column;gap:4px;justify-content:center;}
+.hamburger-btn span{display:block;width:20px;height:2px;background:#94A3B8;border-radius:2px;transition:all .2s;}
+
+/* ── MOBILE MENU (slide from right) ── */
+.mobile-menu{position:fixed;top:0;right:-280px;width:280px;height:100vh;background:#1E293B;z-index:1000;transition:right .3s ease;padding:0;display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,0.3);}
+.mobile-menu.open{right:0;}
+.mm-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #334155;}
+.mm-title{font-size:15px;font-weight:700;color:#E2E8F0;font-family:var(--font-heading);}
+.mm-close{background:none;border:none;color:#94A3B8;font-size:24px;cursor:pointer;padding:0 4px;line-height:1;}
+.mm-close:hover{color:#fff;}
+.mm-nav{padding:12px 10px;display:flex;flex-direction:column;gap:4px;}
+.mm-item{background:none;border:1px solid #334155;border-radius:8px;padding:12px 16px;color:#94A3B8;font-size:14px;font-weight:600;font-family:var(--font-body);cursor:pointer;text-align:left;transition:all .15s;}
+.mm-item:hover,.mm-item.active{background:#0F172A;color:#fff;border-color:#475569;}
+.mm-divider{height:1px;background:#334155;margin:4px 20px;}
+.mm-info{padding:12px 20px;font-size:12px;color:#64748B;font-family:var(--font-mono);}
+.mm-sync{font-size:12px;}
+.mm-logout{margin:auto 16px 20px;padding:12px;border-radius:8px;border:1px solid #7f1d1d;background:transparent;color:#f87171;font-size:14px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;}
+.mm-logout:hover{background:#7f1d1d;color:#fff;}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;}
+.mobile-overlay.open{display:block;}
+
+/* ── MOBILE FOOTER ── */
+.mobile-footer{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:#0F172A;border-top:1px solid #334155;padding:8px 16px;align-items:center;justify-content:space-between;gap:8px;}
+.mf-user{display:flex;align-items:center;gap:6px;}
+.mf-dot{width:7px;height:7px;border-radius:50%;background:#059669;flex-shrink:0;}
+.mf-name{font-size:13px;font-weight:600;color:#E2E8F0;font-family:var(--font-body);}
+.mf-role{font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;font-family:var(--font-body);}
+.mf-sync{font-size:10px;color:#64748B;font-family:var(--font-mono);}
+
 /* ── RESPONSIVE ── */
 
 /* Tablet (≤960px) */
@@ -167,7 +200,7 @@ body{
   .nav-btn{padding:5px 10px;font-size:12px;}
   .user-badge-name{display:none;}
   .sidebar{width:180px;}
-  .content{padding:16px;}
+  .content{padding:18px;}
   .charts-row{grid-template-columns:1fr;}
   .sum-top-cards{grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;}
   .plan-table th,.plan-table td{padding:8px 8px;font-size:12px;}
@@ -175,29 +208,29 @@ body{
 
 /* Mobile (≤700px) */
 @media(max-width:700px){
-  /* Topbar: stack nav below */
-  .topbar{height:auto;min-height:50px;flex-wrap:wrap;padding:8px 12px;gap:6px;}
-  .tb-left{flex:0 0 auto;}
-  .tb-left svg{height:20px;}
-  .tb-nav{flex:1 1 100%;order:10;justify-content:stretch;gap:3px;}
-  .nav-btn{flex:1;text-align:center;padding:6px 4px;font-size:11px;}
-  .user-badge{margin-left:auto;padding:3px 8px;}
-  .user-badge-name{display:none;}
-  .user-badge-role{font-size:9px;padding:1px 5px;}
-  .logout-btn{padding:4px 8px;font-size:11px;margin-left:4px;}
-  #sync-status{font-size:10px !important;margin-left:4px !important;}
+  /* Topbar: clean, only logo + sync + hamburger */
+  .topbar{height:50px;padding:0 14px;}
+  .tb-left svg{height:22px;}
+  #tb-nav-desktop{display:none;}
+  .user-badge{display:none !important;}
+  .logout-btn{display:none !important;}
+  .hamburger-btn{display:flex;}
+  #sync-status{font-size:10px !important;margin-left:auto !important;margin-right:4px !important;}
+
+  /* Mobile footer: show */
+  .mobile-footer{display:flex;}
 
   /* Sidebar: hidden */
   .sidebar{display:none;}
 
-  /* Main content */
-  .main{flex-direction:column;}
-  .content{padding:12px 10px;}
+  /* Main content - add padding + bottom space for footer */
+  .main{flex-direction:column;min-height:calc(100vh - 50px);}
+  .content{padding:16px 16px 70px 16px;}
   .page-title{font-size:18px;}
-  .page-sub{font-size:12px;margin-bottom:12px;}
+  .page-sub{font-size:12px;margin-bottom:14px;}
 
   /* Person card */
-  .p-header{flex-wrap:wrap;padding:12px 14px;gap:10px;}
+  .p-header{flex-wrap:wrap;padding:14px 16px;gap:10px;}
   .p-avatar{width:38px;height:38px;font-size:12px;}
   .p-name{font-size:15px;}
   .p-prog{width:100%;display:flex;align-items:center;gap:10px;text-align:left;}
@@ -208,7 +241,7 @@ body{
   /* KR Table: stack on mobile */
   .kr-table thead{display:none;}
   .kr-table, .kr-table tbody, .kr-table tr, .kr-table td{display:block;width:100%;}
-  .kr-table tr{padding:10px 14px;border-bottom:1px solid #E2E8F0;}
+  .kr-table tr{padding:12px 16px;border-bottom:1px solid #E2E8F0;}
   .kr-table td{padding:3px 0;border:none;}
   .kr-num{font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:2px;}
   .kr-text{font-size:13px;}
@@ -216,7 +249,7 @@ body{
   .sel-input{min-width:0;font-size:14px;padding:8px 10px;}
 
   /* Monthly grid */
-  .monthly{padding:10px 14px;}
+  .monthly{padding:12px 16px;}
   .month-grid{gap:4px;}
   .month-cell{min-width:48px;padding:6px 3px;}
   .m-name{font-size:9px;}
@@ -228,8 +261,8 @@ body{
   .ov-name{font-size:14px;}
 
   /* Summary cards */
-  .sum-top-cards{grid-template-columns:repeat(3,1fr);gap:6px;}
-  .sum-card{padding:10px 6px;}
+  .sum-top-cards{grid-template-columns:repeat(3,1fr);gap:8px;}
+  .sum-card{padding:12px 8px;}
   .sum-val{font-size:22px;}
   .sum-lbl{font-size:11px;}
   .charts-row{grid-template-columns:1fr;gap:10px;}
@@ -237,34 +270,34 @@ body{
   .donut-wrap{flex-direction:column;gap:12px;}
 
   /* Plan tables */
-  .plan-section{padding:12px;}
+  .plan-section{padding:14px;}
   .plan-table thead{display:none;}
   .plan-table, .plan-table tbody, .plan-table tr, .plan-table td{display:block;width:100%;}
   .plan-table tr{padding:10px 0;border-bottom:1px solid #E2E8F0;}
   .plan-table td{padding:3px 0;border:none;font-size:12px;}
 
   /* Readonly banner */
-  .readonly-banner{padding:6px 12px;font-size:11px;}
-
-  /* Obj block */
-  .obj-block{padding:10px 14px;}
+  .readonly-banner{padding:6px 14px;font-size:11px;}
+  .obj-block{padding:10px 16px;}
   .obj-text{font-size:13px;}
 
   /* Login */
-  .login-box{padding:28px 20px 24px;margin:0 12px;}
+  .login-box{padding:28px 20px 24px;margin:0 16px;}
 }
 
 /* Small phone (≤400px) */
 @media(max-width:400px){
-  .topbar{padding:6px 8px;}
-  .nav-btn{font-size:10px;padding:5px 2px;}
-  .content{padding:8px 6px;}
+  .topbar{padding:0 10px;}
+  .content{padding:12px 12px 70px 12px;}
   .sum-top-cards{grid-template-columns:repeat(2,1fr);}
   .month-cell{min-width:42px;}
-  .p-header{padding:10px;}
-  .person-card{border-radius:10px;}
-  .chart-card{border-radius:10px;}
-  .plan-section{border-radius:10px;}
+  .p-header{padding:12px;}
+  .person-card{border-radius:12px;}
+  .chart-card{border-radius:12px;}
+  .plan-section{border-radius:12px;}
+  .kr-table tr{padding:10px 12px;}
+  .monthly{padding:10px 12px;}
+  .obj-block{padding:10px 12px;}
 }
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:99px;}
@@ -423,8 +456,8 @@ async function doLogin() {
     <div class="tb-divider"></div>
     <span class="tb-sub">OKR ครึ่งปีแรก 2026</span>
   </div>
-  <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:flex-end">
-    <div class="tb-nav">
+  <div class="tb-right">
+    <div class="tb-nav" id="tb-nav-desktop">
       <button class="nav-btn active" onclick="setView('summary',this)">📊 สรุปแผนงาน</button>
       <button class="nav-btn" onclick="setView('detail',this)">📋 รายบุคคล</button>
       <button class="nav-btn" onclick="setView('overview',this)">🗂 ภาพรวม</button>
@@ -436,7 +469,41 @@ async function doLogin() {
     </div>
     <span id="sync-status" style="font-size:11px;color:#64748B;font-family:var(--font-mono);margin-left:10px;"></span>
     <button class="logout-btn" id="logout-btn" onclick="doLogout()" style="display:none">ออกจากระบบ</button>
+    <!-- Hamburger (mobile only) -->
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+</div>
+
+<!-- Mobile slide menu -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mm-header">
+    <span class="mm-title">เมนู</span>
+    <button class="mm-close" onclick="toggleMobileMenu()">&times;</button>
+  </div>
+  <div class="mm-nav">
+    <button class="mm-item active" onclick="setViewMobile('summary',this)">📊 สรุปแผนงาน</button>
+    <button class="mm-item" onclick="setViewMobile('detail',this)">📋 รายบุคคล</button>
+    <button class="mm-item" onclick="setViewMobile('overview',this)">🗂 ภาพรวม</button>
+  </div>
+  <div class="mm-divider"></div>
+  <div class="mm-info">
+    <div class="mm-sync" id="mm-sync-status"></div>
+  </div>
+  <div class="mm-divider"></div>
+  <button class="mm-logout" id="mm-logout-btn" onclick="doLogout()">ออกจากระบบ</button>
+</div>
+<div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
+
+<!-- Mobile footer (user info + sync) -->
+<div class="mobile-footer" id="mobile-footer">
+  <div class="mf-user">
+    <div class="mf-dot"></div>
+    <span class="mf-name" id="mf-name">-</span>
+    <span class="mf-role" id="mf-role">Viewer</span>
+  </div>
+  <span class="mf-sync" id="mf-sync"></span>
 </div>
 
 <div class="readonly-banner" id="readonly-banner">
@@ -523,6 +590,9 @@ function setSyncStatus(state) {
   const s = map[state] || { text: "", color: "#64748B" };
   el.textContent = s.text;
   el.style.color = s.color;
+  // Also update mobile footer sync
+  const mfSync = document.getElementById("mf-sync");
+  if(mfSync) { mfSync.textContent = s.text; mfSync.style.color = s.color; }
 }
 
 // ส่งข้อมูลไป Firebase
@@ -719,6 +789,16 @@ function __applyUserSession__(username) {
   // readonly banner
   const banner = document.getElementById("readonly-banner");
   if(banner) { banner.classList.toggle("show", !canEdit()); }
+
+  // Mobile footer
+  const mfName = document.getElementById("mf-name");
+  const mfRole = document.getElementById("mf-role");
+  if(mfName) { mfName.textContent = username.charAt(0).toUpperCase() + username.slice(1); }
+  if(mfRole) {
+    mfRole.textContent = roleLabel[currentRole];
+    mfRole.style.color = roleColor[currentRole];
+    mfRole.style.background = roleBg[currentRole];
+  }
 }
 
 function doLogout() {
@@ -997,6 +1077,7 @@ function selectPerson(pid) {
   selectedPerson = pid;
   currentView = "detail";
   document.querySelectorAll(".nav-btn").forEach((b,i)=>b.classList.toggle("active",i===1));
+  document.querySelectorAll(".mm-item").forEach((b,i)=>b.classList.toggle("active",i===1));
   renderSidebar();
   renderDetail(pid);
 }
@@ -1009,6 +1090,31 @@ function setView(v, btn) {
   else if(v==="overview") renderOverview();
   else renderSummary();
   renderSidebar();
+}
+
+function setViewMobile(v, btn) {
+  currentView = v;
+  // sync desktop nav buttons
+  const views = ["summary","detail","overview"];
+  const idx = views.indexOf(v);
+  document.querySelectorAll(".nav-btn").forEach((b,i)=>b.classList.toggle("active",i===idx));
+  document.querySelectorAll(".mm-item").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  if(v==="detail") renderDetail(selectedPerson);
+  else if(v==="overview") renderOverview();
+  else renderSummary();
+  renderSidebar();
+  toggleMobileMenu(); // close menu
+}
+
+// ── HAMBURGER MENU ──
+function toggleMobileMenu() {
+  const menu = document.getElementById("mobile-menu");
+  const overlay = document.getElementById("mobile-overlay");
+  const isOpen = menu.classList.contains("open");
+  menu.classList.toggle("open", !isOpen);
+  overlay.classList.toggle("open", !isOpen);
+  document.body.style.overflow = isOpen ? "" : "hidden";
 }
 
 function changeStatus(pid, idx, val) {
