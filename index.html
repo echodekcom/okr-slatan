@@ -459,7 +459,7 @@ async function loadFromSheet() {
   setSyncStatus("loading");
   console.log("[OKR] loadFromFirebase: starting...");
   try {
-    const res = await fetch(FIREBASE_URL + ".json");
+    const res = await fetch(FIREBASE_URL + "/.json");
     if (!res.ok) { console.error("[OKR] Firebase load error:", res.status); setSyncStatus("error"); return; }
     const json = await res.json();
 
