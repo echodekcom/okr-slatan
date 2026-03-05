@@ -387,7 +387,7 @@ let __DATA_READY__ = false;
 // ══════════════════════════════════
 
 // 👇 วาง URL ที่ได้จาก Apps Script Deploy ตรงนี้
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbwdx5VnzI59uBDADml0L-8mysRHGoPFH0LBLFauyw7LfKs_vzvDsidT2I9CEXosNvVf/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwSpisUHDvtoEtoHrLD3RWyac7Q6zuaQZ6h79iJW4qwpoj2ThmudprH_8UhL0KrcL4Z/exec";
 
 let _saveTimer = null;
 
@@ -422,7 +422,6 @@ async function syncToSheet(type) {
   try {
     let data = {};
     if (type === "kr") {
-      // { "faiz_0": { status: "done" }, "faiz_1": ... }
       PEOPLE.forEach(p => {
         krStatus[p.id].forEach((s, i) => { data[`${p.id}_${i}`] = { status: s }; });
       });
@@ -441,14 +440,19 @@ async function syncToSheet(type) {
       planStatus.forEach((s, i) => { data[`plan_${i}`] = { status: s }; });
     }
 
+    // ใช้ Content-Type: text/plain เพื่อหลีกเลี่ยง CORS preflight (OPTIONS)
+    // Apps Script ไม่รองรับ OPTIONS request → ถ้าใช้ application/json จะ fail
     const res = await fetch(SHEET_URL, {
       method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      redirect: "follow",
       body: JSON.stringify({ type, data }),
     });
     const json = await res.json();
     setSyncStatus(json.ok ? "saved" : "error");
     if (json.ok) setTimeout(() => setSyncStatus("saved"), 3000);
   } catch(e) {
+    console.error("syncToSheet error:", e);
     setSyncStatus("error");
   }
 }
@@ -458,7 +462,8 @@ async function loadFromSheet() {
   if (!SHEET_URL || SHEET_URL === "YOUR_APPS_SCRIPT_URL_HERE") return;
   setSyncStatus("loading");
   try {
-    const res  = await fetch(SHEET_URL);
+    const res  = await fetch(SHEET_URL, { redirect: "follow" });
+    if (!res.ok) { console.error("loadFromSheet HTTP error:", res.status); setSyncStatus("error"); return; }
     const json = await res.json();
 
     // KR status
@@ -500,9 +505,9 @@ async function loadFromSheet() {
     else if (currentView === "overview") renderOverview();
     else renderSummary();
   } catch(e) {
+    console.error("loadFromSheet error:", e);
     setSyncStatus("error");
   }
-}
 
 // ══════════════════════════════════
 //  STATE  (init after decrypt)
