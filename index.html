@@ -383,18 +383,17 @@ let __DATA_READY__ = false;
 
 
 // ══════════════════════════════════
-//  GOOGLE SHEETS SYNC
+//  FIREBASE REALTIME DATABASE SYNC
 // ══════════════════════════════════
 
-// 👇 วาง URL ที่ได้จาก Apps Script Deploy ตรงนี้
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbwu9r3djx19vqOt46xaNcA4FjjCv75tdrUW-z9PspfkpjSjY2lBnFcpBISn9uVauMZl/exec";
+const FIREBASE_URL = "https://slatanhub-1767064087995-default-rtdb.asia-southeast1.firebasedatabase.app";
 
 let _saveTimer = null;
 
 // debounce: รอ 1.2s หลังแก้ล่าสุดแล้วค่อย save
 function scheduleSave(type) {
   clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => syncToSheet(type), 1200);
+  _saveTimer = setTimeout(() => syncToFirebase(type), 1200);
 }
 
 // แสดง sync status ที่ topbar
@@ -413,80 +412,60 @@ function setSyncStatus(state) {
   el.style.color = s.color;
 }
 
-// ส่งข้อมูลไป Sheet
-async function syncToSheet(type) {
-  if (!SHEET_URL || SHEET_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
-    setSyncStatus("offline"); return;
-  }
+// ส่งข้อมูลไป Firebase
+async function syncToFirebase(type) {
   setSyncStatus("saving");
   try {
     let data = {};
     if (type === "kr") {
-      // { "faiz_0": { status: "done" }, "faiz_1": ... }
       PEOPLE.forEach(p => {
-        krStatus[p.id].forEach((s, i) => { data[`${p.id}_${i}`] = { status: s }; });
+        krStatus[p.id].forEach((s, i) => { data[p.id + "_" + i] = { status: s }; });
       });
     }
     if (type === "actual") {
       PEOPLE.forEach(p => {
-        actualData[p.id].forEach((v, i) => { data[`${p.id}_${i}`] = { value: v }; });
+        actualData[p.id].forEach((v, i) => { data[p.id + "_" + i] = { value: v }; });
       });
     }
     if (type === "month") {
       PEOPLE.forEach(p => {
-        monthData[p.id].forEach((v, i) => { data[`${p.id}_${i}`] = { status: v }; });
+        monthData[p.id].forEach((v, i) => { data[p.id + "_" + i] = { status: v }; });
       });
     }
     if (type === "plan") {
-      planStatus.forEach((s, i) => { data[`plan_${i}`] = { status: s }; });
+      planStatus.forEach((s, i) => { data["plan_" + i] = { status: s }; });
     }
 
-    // ใช้ mode no-cors + Content-Type text/plain เพื่อหลีกเลี่ยง CORS preflight
-    await fetch(SHEET_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ type, data }),
+    // Firebase REST API — PUT จะเขียนทับทั้ง node
+    const res = await fetch(FIREBASE_URL + "/" + type + ".json", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
-    // no-cors → opaque response → ถือว่าสำเร็จถ้าไม่ throw
-    setSyncStatus("saved");
-    setTimeout(() => setSyncStatus("saved"), 3000);
+    if (res.ok) {
+      setSyncStatus("saved");
+    } else {
+      console.error("[OKR] Firebase save error:", res.status);
+      setSyncStatus("error");
+    }
   } catch(e) {
+    console.error("[OKR] syncToFirebase error:", e);
     setSyncStatus("error");
   }
 }
 
-// โหลดข้อมูลจาก Sheet ตอน login (ใช้ JSONP เพื่อหลีกเลี่ยง CORS)
+// โหลดข้อมูลจาก Firebase ตอน login
 async function loadFromSheet() {
-  if (!SHEET_URL || SHEET_URL === "YOUR_APPS_SCRIPT_URL_HERE") return;
   setSyncStatus("loading");
-  console.log("[OKR] loadFromSheet: starting JSONP request...");
+  console.log("[OKR] loadFromFirebase: starting...");
   try {
-    const json = await new Promise((resolve, reject) => {
-      const cbName = "_okrCb_" + Date.now();
-      const timeout = setTimeout(() => {
-        console.error("[OKR] JSONP timeout after 15s");
-        delete window[cbName]; sc.remove(); reject(new Error("timeout"));
-      }, 15000);
-      window[cbName] = function(data) {
-        console.log("[OKR] JSONP callback received!", Object.keys(data));
-        clearTimeout(timeout); delete window[cbName]; sc.remove(); resolve(data);
-      };
-      const sc = document.createElement("script");
-      sc.src = SHEET_URL + "?callback=" + cbName;
-      sc.onerror = (e) => {
-        console.error("[OKR] JSONP script load error", e);
-        clearTimeout(timeout); delete window[cbName]; reject(new Error("script error"));
-      };
-      document.head.appendChild(sc);
-    });
+    const res = await fetch(FIREBASE_URL + ".json");
+    if (!res.ok) { console.error("[OKR] Firebase load error:", res.status); setSyncStatus("error"); return; }
+    const json = await res.json();
 
-    console.log("[OKR] Data received, applying...", {
-      krKeys: json.kr ? Object.keys(json.kr).length : 0,
-      actualKeys: json.actual ? Object.keys(json.actual).length : 0,
-      monthKeys: json.month ? Object.keys(json.month).length : 0,
-      planKeys: json.plan ? Object.keys(json.plan).length : 0,
-    });
+    if (!json) { console.log("[OKR] Firebase is empty, using defaults"); setSyncStatus("saved"); return; }
+
+    console.log("[OKR] Firebase data received:", Object.keys(json));
 
     // KR status
     if (json.kr) {
@@ -528,7 +507,7 @@ async function loadFromSheet() {
     else if (currentView === "overview") renderOverview();
     else renderSummary();
   } catch(e) {
-    console.error("[OKR] loadFromSheet failed:", e.message);
+    console.error("[OKR] loadFromFirebase failed:", e);
     setSyncStatus("error");
   }
 }
